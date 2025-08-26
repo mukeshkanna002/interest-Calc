@@ -1,95 +1,93 @@
+// --- Utilities ---
 function autoFormatDate(input) {
-  let value = input.value.replace(/[^0-9]/g, ""); // only digits
-
+  let value = input.value.replace(/[^0-9]/g, "");
   if (value.length >= 2 && value.length <= 4) {
     value = value.slice(0, 2) + "/" + value.slice(2);
   } else if (value.length > 4) {
     value = value.slice(0, 2) + "/" + value.slice(2, 4) + "/" + value.slice(4, 8);
   }
-
   input.value = value.slice(0, 10);
 }
 
 function isValidDate(dateString) {
   if (!/^\d{2}\/\d{2}\/\d{4}$/.test(dateString)) return false;
-
   const [day, month, year] = dateString.split("/").map(Number);
   const date = new Date(year, month - 1, day);
-
-  return (
-    date.getFullYear() === year &&
-    date.getMonth() === month - 1 &&
-    date.getDate() === day
-  );
+  return date.getFullYear() === year && date.getMonth() === month - 1 && date.getDate() === day;
 }
 
 function getTodayDate() {
-  const today = new Date();
-  const day = String(today.getDate()).padStart(2, "0");
-  const month = String(today.getMonth() + 1).padStart(2, "0");
-  const year = today.getFullYear();
-  return `${day}/${month}/${year}`;
+  const t = new Date();
+  const d = String(t.getDate()).padStart(2, "0");
+  const m = String(t.getMonth() + 1).padStart(2, "0");
+  const y = t.getFullYear();
+  return `${d}/${m}/${y}`;
 }
 
+function parseDDMMYYYY(s) {
+  const [d,m,y] = s.split("/").map(Number);
+  return new Date(y, m-1, d);
+}
+
+// --- Calculation ---
 function calculateInterest() {
-  let start = document.getElementById("start").value;
-  let end = document.getElementById("end").value;
-  let amount = parseFloat(document.getElementById("amount").value);
-  let rate = parseFloat(document.getElementById("rate").value);
+  let startStr = document.getElementById("start").value.trim();
+  let endStr = document.getElementById("end").value.trim();
+  const amount = parseFloat(document.getElementById("amount").value);
+  const rate = parseFloat(document.getElementById("rate").value);
 
-  if (!isValidDate(start)) {
-    alert("Please enter a valid Start Date (dd/mm/yyyy)");
-    return;
+  if (!isValidDate(startStr)) { alert("Please enter a valid Start Date (dd/mm/yyyy)"); return; }
+  if (!endStr) { endStr = getTodayDate(); document.getElementById("end").value = endStr; }
+  if (!isValidDate(endStr)) { alert("Please enter a valid End Date (dd/mm/yyyy)"); return; }
+  if (isNaN(amount) || amount <= 0) { alert("Please enter a valid amount"); return; }
+
+  const s = parseDDMMYYYY(startStr);
+  const e = parseDDMMYYYY(endStr);
+  if (e < s) { alert("End date must be after Start date"); return; }
+
+  // months/days difference
+  let months = (e.getFullYear() - s.getFullYear()) * 12 + (e.getMonth() - s.getMonth());
+  let days = e.getDate() - s.getDate();
+  if (days < 0) {
+    months -= 1;
+    const daysInPrevMonth = new Date(e.getFullYear(), e.getMonth(), 0).getDate();
+    days += daysInPrevMonth;
   }
+  const durationText = `${months} month(s) ${days} day(s)`;
 
-  if (!end) {
-    end = getTodayDate();
-    document.getElementById("end").value = end;
-  } else if (!isValidDate(end)) {
-    alert("Please enter a valid End Date (dd/mm/yyyy)");
-    return;
-  }
+  // rounding rule
+  let totalMonths = months;
+  if (days > 17) totalMonths += 1;
+  else if (days > 5) totalMonths += 0.5;
 
-  if (isNaN(amount) || amount <= 0) {
-    alert("Please enter a valid amount");
-    return;
-  }
+  // interest and totals
+  const monthlyRate = rate / 100;
+  const interest = amount * monthlyRate * totalMonths;
+  const total = amount + interest;
+  let newTotal = total - (amount * monthlyRate); // deduct one-month interest
+  if (newTotal < amount) newTotal = amount;
 
-  const [d1, m1, y1] = start.split("/").map(Number);
-  const [d2, m2, y2] = end.split("/").map(Number);
-  const startDate = new Date(y1, m1 - 1, d1);
-  const endDate = new Date(y2, m2 - 1, d2);
-
-  if (endDate < startDate) {
-    alert("End date must be after Start date");
-    return;
-  }
-
-  let totalMonths = (y2 - y1) * 12 + (m2 - m1);
-  let extraDays = d2 - d1;
-
-  if (extraDays < 0) {
-    totalMonths -= 1;
-    const prevMonth = new Date(y2, m2 - 1, 0).getDate();
-    extraDays += prevMonth;
-  }
-
-  let duration = `${totalMonths} month(s) ${extraDays} day(s)`;
-
-  if (extraDays > 17) {
-    totalMonths += 1;
-  } else if (extraDays > 5) {
-    totalMonths += 0.5;
-  }
-
-  let interest = amount * (rate / 100) * totalMonths;
-  let total = amount + interest;
-  let newTotal = total - (amount * (rate / 100)); // one month interest less
+  // format numbers
+  const fmt = (n)=> new Intl.NumberFormat('en-IN', { maximumFractionDigits: 2 }).format(n);
 
   document.getElementById("result").innerHTML = `
-    <b>Duration:</b> ${duration}<br>
-    <b>Interest @ ${rate}%:</b> ${interest.toFixed(2)}<br>
-    <b>Total:</b> ${total.toFixed(2)}<br>
-    <div class="result-highlight"><b>NEW Total (1 month less):</b> ${newTotal.toFixed(2)}</div>
+    <div class="kv"><span>Start</span><strong>${startStr}</strong></div>
+    <div class="kv"><span>End</span><strong>${endStr}</strong></div>
+    <div class="kv"><span>Duration</span><strong>${durationText}</strong></div>
+    <div class="kv"><span>Rate</span><strong>${rate}% <span class="badge">per month</span></strong></div>
+    <div class="kv"><span>Principal</span><strong>₹ ${fmt(amount)}</strong></div>
+    <div class="kv"><span>Interest</span><strong>₹ ${fmt(interest)}</strong></div>
+    <div class="kv total"><span>Total</span><strong>₹ ${fmt(total)}</strong></div>
+    <div class="newtotal">NEW Total (1 month less): ₹ ${fmt(newTotal)}</div>
   `;
 }
+
+// --- Init ---
+document.addEventListener("DOMContentLoaded", () => {
+  const end = document.getElementById("end");
+  end.value = getTodayDate(); // prefill today
+  // attach auto-format on input
+  document.getElementById("start").addEventListener("input", (e)=>autoFormatDate(e.target));
+  end.addEventListener("input", (e)=>autoFormatDate(e.target));
+  document.getElementById("calcBtn").addEventListener("click", calculateInterest);
+});
