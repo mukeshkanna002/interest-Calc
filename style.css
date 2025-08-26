@@ -44,6 +44,7 @@ h1{
   margin:6px 0 4px;
   font-size: clamp(20px, 3.5vw, 26px);
   letter-spacing:.3px;
+  text-align: center; 
 }
 
 .sub{
