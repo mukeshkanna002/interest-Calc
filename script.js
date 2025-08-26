@@ -77,8 +77,8 @@ function calculateInterest() {
     <div class="kv"><span>Rate</span><strong>${rate}% <span class="badge">per month</span></strong></div>
     <div class="kv"><span>Principal</span><strong>₹ ${fmt(amount)}</strong></div>
     <div class="kv"><span>Interest</span><strong>₹ ${fmt(interest)}</strong></div>
-    <div class="kv total"><span>Total</span><strong>₹ ${fmt(total)}</strong></div>
-    <div class="newtotal">NEW Total (1 month less): ₹ ${fmt(newTotal)}</div>
+    <div class="kv total"><span>Total</span><strong>₹ ${fmt(newTotal)}</strong></div>
+    <div class="newtotal">NEW Total : ₹ ${fmt(total)}</div>
   `;
 }
 
