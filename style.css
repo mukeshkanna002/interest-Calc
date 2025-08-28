@@ -30,3 +30,8 @@ button:hover{background:var(--primary-hover)}
   .container{padding:12px;margin:10px auto}
   .rates-row{flex-direction:column}
 }
+#gold-price, #silver-price {
+  font-size: 1rem;
+  margin-top: 5px;
+  font-weight: 500;
+}
