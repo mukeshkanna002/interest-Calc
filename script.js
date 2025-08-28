@@ -1,21 +1,29 @@
-// --- Utilities ---
 
 function autoFormatDate(input) {
-  let value = input.value.replace(/[^0-9]/g, "");
-  let formatted = "";
+  const originalValue = input.value;
+  const originalPos = input.selectionStart;
 
-  if (value.length > 0) {
-    formatted += value.substring(0, 2);
-  }
-  if (value.length >= 3) {
-    formatted += "/" + value.substring(2, 4);
-  }
-  if (value.length >= 5) {
-    formatted += "/" + value.substring(4, 8);
-  }
+  // Remove non-digits
+  let digits = originalValue.replace(/\D/g, "");
+
+  // Format as DD/MM/YYYY
+  let formatted = "";
+  if (digits.length > 0) formatted += digits.substring(0, 2);
+  if (digits.length >= 3) formatted += "/" + digits.substring(2, 4);
+  if (digits.length >= 5) formatted += "/" + digits.substring(4, 8);
 
   input.value = formatted;
+
+  // Adjust cursor position
+  let newPos = originalPos;
+
+  // If a slash was added before the cursor, move it forward
+  if (originalPos === 2 || originalPos === 5) newPos++;
+
+  // Prevent cursor from jumping to end
+  setTimeout(() => input.setSelectionRange(newPos, newPos), 0);
 }
+
 
 function isValidDate(dateString) {
   if (!/^\d{2}\/\d{2}\/\d{4}$/.test(dateString)) return false;
