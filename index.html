@@ -2,40 +2,30 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="theme-color" content="#2563eb" />
-  <title>Interest Calculator</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Interest Calculator with Chennai Gold & Silver</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <main class="wrapper">
-    <section class="card">
-      <h1>கண்ணா அடகு கடை</h1>
+  <div class="container">
+    <h2>Interest Calculator</h2>
+    <label>Principal (₹): <input type="number" id="principal" /></label><br>
+    <label>Rate: 
+      <select id="rate">
+        <option value="0.02">2%</option>
+        <option value="0.05">5%</option>
+        <option value="0.015">1.5%</option>
+      </select>
+    </label><br>
+    <label>Start Date: <input type="text" id="startDate" placeholder="dd/mm/yyyy" /></label><br>
+    <label>End Date: <input type="text" id="endDate" placeholder="dd/mm/yyyy" /></label><br>
+    <button id="calculateBtn">Calculate</button>
+    <div id="result"></div>
 
-      <div class="grid">
-        <label for="start">Start Date (dd/mm/yyyy)</label>
-        <input type="text" id="start" placeholder="dd/mm/yyyy" maxlength="10" inputmode="numeric" autocomplete="off" />
-
-        <label for="end">End Date (dd/mm/yyyy)</label>
-        <input type="text" id="end" placeholder="dd/mm/yyyy" maxlength="10" inputmode="numeric" autocomplete="off" />
-
-        <label for="amount">Principal Amount</label>
-        <input type="number" id="amount" placeholder="e.g. 100000" inputmode="decimal" />
-
-        <label for="rate">Interest Rate</label>
-        <select id="rate">
-          <option value="2">2%</option>
-          <option value="5">5%</option>
-          <option value="1.5">1.5%</option>
-        </select>
-      </div>
-
-      <button id="calcBtn" type="button">Calculate</button>
-
-      <div id="result" class="result" aria-live="polite"></div>
-    </section>
-  </main>
-
-  <script src="script.js" defer></script>
+    <h3>Metal Prices</h3>
+    <p id="goldPrice">Loading gold price...</p>
+    <p id="silverPrice">Loading silver price...</p>
+  </div>
+  <script src="script.js"></script>
 </body>
 </html>

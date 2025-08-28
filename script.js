@@ -1,93 +1,93 @@
-// --- Utilities ---
-function autoFormatDate(input) {
-  let value = input.value.replace(/[^0-9]/g, "");
-  if (value.length >= 2 && value.length <= 4) {
-    value = value.slice(0, 2) + "/" + value.slice(2);
-  } else if (value.length > 4) {
-    value = value.slice(0, 2) + "/" + value.slice(2, 4) + "/" + value.slice(4, 8);
+// Auto-format dd/mm/yyyy input with backspace fix
+function setupDateInput(id) {
+  const input = document.getElementById(id);
+  input.addEventListener("input", (e) => {
+    let value = e.target.value.replace(/[^0-9]/g, "");
+
+    if (value.length > 2 && value.length <= 4) {
+      value = value.slice(0,2) + "/" + value.slice(2);
+    } else if (value.length > 4) {
+      value = value.slice(0,2) + "/" + value.slice(2,4) + "/" + value.slice(4,8);
+    }
+    e.target.value = value;
+  });
+
+  // Handle backspace correctly
+  input.addEventListener("keydown", (e) => {
+    if (e.key === "Backspace") {
+      let val = input.value;
+      if (val.endsWith("/")) {
+        input.value = val.slice(0, -1);
+        e.preventDefault();
+      }
+    }
+  });
+}
+
+function parseDate(str) {
+  const [dd, mm, yyyy] = str.split("/").map(Number);
+  return new Date(yyyy, mm - 1, dd);
+}
+
+// Chennai Gold & Silver API fetch
+async function fetchChennaiRates() {
+  try {
+    const url = `https://metals-api.com/api/latest?access_key=YOUR_API_KEY&base=INR&symbols=XAU,XAG`;
+    const res = await fetch(url);
+    const json = await res.json();
+    const rates = json.rates || {};
+
+    const goldPerOz = rates["XAU"];
+    const silverPerOz = rates["XAG"];
+
+    const goldPerGram = goldPerOz ? (goldPerOz / 31.1035).toFixed(2) : "N/A";
+    const silverPerGram = silverPerOz ? (silverPerOz / 31.1035).toFixed(2) : "N/A";
+
+    document.getElementById("goldPrice").textContent = "Gold (Chennai): ₹" + goldPerGram + " / gram";
+    document.getElementById("silverPrice").textContent = "Silver (Chennai): ₹" + silverPerGram + " / gram";
+  } catch (err) {
+    document.getElementById("goldPrice").textContent = "Gold (Chennai): Error loading";
+    document.getElementById("silverPrice").textContent = "Silver (Chennai): Error loading";
   }
-  input.value = value.slice(0, 10);
 }
 
-function isValidDate(dateString) {
-  if (!/^\d{2}\/\d{2}\/\d{4}$/.test(dateString)) return false;
-  const [day, month, year] = dateString.split("/").map(Number);
-  const date = new Date(year, month - 1, day);
-  return date.getFullYear() === year && date.getMonth() === month - 1 && date.getDate() === day;
-}
-
-function getTodayDate() {
-  const t = new Date();
-  const d = String(t.getDate()).padStart(2, "0");
-  const m = String(t.getMonth() + 1).padStart(2, "0");
-  const y = t.getFullYear();
-  return `${d}/${m}/${y}`;
-}
-
-function parseDDMMYYYY(s) {
-  const [d,m,y] = s.split("/").map(Number);
-  return new Date(y, m-1, d);
-}
-
-// --- Calculation ---
-function calculateInterest() {
-  let startStr = document.getElementById("start").value.trim();
-  let endStr = document.getElementById("end").value.trim();
-  const amount = parseFloat(document.getElementById("amount").value);
+// Interest calculation
+document.getElementById("calculateBtn").addEventListener("click", () => {
+  const principal = parseFloat(document.getElementById("principal").value);
   const rate = parseFloat(document.getElementById("rate").value);
+  const startDate = parseDate(document.getElementById("startDate").value);
+  const endDate = parseDate(document.getElementById("endDate").value);
 
-  if (!isValidDate(startStr)) { alert("Please enter a valid Start Date (dd/mm/yyyy)"); return; }
-  if (!endStr) { endStr = getTodayDate(); document.getElementById("end").value = endStr; }
-  if (!isValidDate(endStr)) { alert("Please enter a valid End Date (dd/mm/yyyy)"); return; }
-  if (isNaN(amount) || amount <= 0) { alert("Please enter a valid amount"); return; }
-
-  const s = parseDDMMYYYY(startStr);
-  const e = parseDDMMYYYY(endStr);
-  if (e < s) { alert("End date must be after Start date"); return; }
-
-  // months/days difference
-  let months = (e.getFullYear() - s.getFullYear()) * 12 + (e.getMonth() - s.getMonth());
-  let days = e.getDate() - s.getDate();
-  if (days < 0) {
-    months -= 1;
-    const daysInPrevMonth = new Date(e.getFullYear(), e.getMonth(), 0).getDate();
-    days += daysInPrevMonth;
+  if (isNaN(principal) || !startDate || !endDate) {
+    document.getElementById("result").textContent = "Please enter valid inputs.";
+    return;
   }
-  const durationText = `${months} month(s) ${days} day(s)`;
 
-  // rounding rule
-  let totalMonths = months;
-  if (days > 17) totalMonths += 1;
-  else if (days > 5) totalMonths += 0.5;
+  const diffTime = Math.abs(endDate - startDate);
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  const months = diffDays / 30;
 
-  // interest and totals
-  const monthlyRate = rate / 100;
-  const interest = amount * monthlyRate * totalMonths;
-  const total = amount + interest;
-  let newTotal = total - (amount * monthlyRate); // deduct one-month interest
-  if (newTotal < amount) newTotal = amount;
-
-  // format numbers
-  const fmt = (n)=> new Intl.NumberFormat('en-IN', { maximumFractionDigits: 2 }).format(n);
+  const interest = principal * rate * months;
+  const total = principal + interest;
+  const newTotal = total - (principal * rate); // one month less interest
 
   document.getElementById("result").innerHTML = `
-    <div class="kv"><span>Start</span><strong>${startStr}</strong></div>
-    <div class="kv"><span>End</span><strong>${endStr}</strong></div>
-    <div class="kv"><span>Duration</span><strong>${durationText}</strong></div>
-    <div class="kv"><span>Rate</span><strong>${rate}% <span class="badge">per month</span></strong></div>
-    <div class="kv"><span>Principal</span><strong>₹ ${fmt(amount)}</strong></div>
-    <div class="kv"><span>Interest</span><strong>₹ ${fmt(interest)}</strong></div>
-    <div class="kv total"><span>Total</span><strong>₹ ${fmt(newTotal)}</strong></div>
-    <div class="newtotal">NEW Total : ₹ ${fmt(total)}</div>
+    Duration: ${diffDays} days (${months.toFixed(2)} months)<br>
+    Interest: ₹${interest.toFixed(2)}<br>
+    Total: ₹${total.toFixed(2)}<br>
+    New Total (1 month less): ₹${newTotal.toFixed(2)}
   `;
-}
-
-// --- Init ---
-document.addEventListener("DOMContentLoaded", () => {
-  const end = document.getElementById("end");
-  end.value = getTodayDate(); // prefill today
-  // attach auto-format on input
-  document.getElementById("start").addEventListener("input", (e)=>autoFormatDate(e.target));
-  end.addEventListener("input", (e)=>autoFormatDate(e.target));
-  document.getElementById("calcBtn").addEventListener("click", calculateInterest);
 });
+
+// Prefill today's date in End Date
+window.onload = () => {
+  const today = new Date();
+  const dd = String(today.getDate()).padStart(2, '0');
+  const mm = String(today.getMonth() + 1).padStart(2, '0');
+  const yyyy = today.getFullYear();
+  document.getElementById("endDate").value = dd + "/" + mm + "/" + yyyy;
+
+  setupDateInput("startDate");
+  setupDateInput("endDate");
+  fetchChennaiRates();
+};
