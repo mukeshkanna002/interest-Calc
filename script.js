@@ -29,13 +29,18 @@ function autoFormatDate(input) {
 }
 
 
-
 function isValidDate(dateString) {
-  if (!/^\d{2}\/\d{2}\/\d{4}$/.test(dateString)) return false;
+  if (!/^\d{2}\/\d{2}\/\d{2,4}$/.test(dateString)) return false;
   const [day, month, year] = dateString.split("/").map(Number);
-  const date = new Date(year, month - 1, day);
-  return date.getFullYear() === year && date.getMonth() === month - 1 && date.getDate() === day;
+  const fullYear = year < 100 ? 2000 + year : year;
+  const date = new Date(fullYear, month - 1, day);
+  return (
+    date.getFullYear() === fullYear &&
+    date.getMonth() === month - 1 &&
+    date.getDate() === day
+  );
 }
+
 
 function getTodayDate() {
   const t = new Date();
@@ -46,9 +51,11 @@ function getTodayDate() {
 }
 
 function parseDDMMYYYY(s) {
-  const [d,m,y] = s.split("/").map(Number);
-  return new Date(y, m-1, d);
+  const [d, m, y] = s.split("/").map(Number);
+  const fullYear = y < 100 ? 2000 + y : y; // Convert 25 → 2025
+  return new Date(fullYear, m - 1, d);
 }
+
 
 // --- Calculation ---
 function calculateInterest() {
