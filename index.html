@@ -3,29 +3,64 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Interest Calculator with Chennai Gold & Silver</title>
+  <title>Interest Calculator • Chennai Gold & Silver</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
   <div class="container">
-    <h2>Interest Calculator</h2>
-    <label>Principal (₹): <input type="number" id="principal" /></label><br>
-    <label>Rate: 
-      <select id="rate">
-        <option value="0.02">2%</option>
-        <option value="0.05">5%</option>
-        <option value="0.015">1.5%</option>
-      </select>
-    </label><br>
-    <label>Start Date: <input type="text" id="startDate" placeholder="dd/mm/yyyy" /></label><br>
-    <label>End Date: <input type="text" id="endDate" placeholder="dd/mm/yyyy" /></label><br>
-    <button id="calculateBtn">Calculate</button>
-    <div id="result"></div>
+    <h1>Interest Calculator</h1>
 
-    <h3>Metal Prices</h3>
-    <p id="goldPrice">Loading gold price...</p>
-    <p id="silverPrice">Loading silver price...</p>
+    <!-- Rates -->
+    <section class="card rates">
+      <h2>Today’s Chennai Rates</h2>
+      <div class="rates-row">
+        <div class="rate-item">
+          <div class="label">Gold</div>
+          <div id="goldPrice" class="value">Loading…</div>
+        </div>
+        <div class="rate-item">
+          <div class="label">Silver</div>
+          <div id="silverPrice" class="value">Loading…</div>
+        </div>
+      </div>
+      <div id="ratesMeta" class="meta">—</div>
+    </section>
+
+    <!-- Form -->
+    <section class="card">
+      <form id="interestForm">
+        <div class="field">
+          <label for="principal">Principal (₹)</label>
+          <input type="number" id="principal" inputmode="decimal" placeholder="Enter amount" required />
+        </div>
+
+        <div class="field">
+          <label for="startDate">Start Date (dd/mm/yyyy)</label>
+          <input type="text" id="startDate" placeholder="dd/mm/yyyy" maxlength="10" required />
+        </div>
+
+        <div class="field">
+          <label for="endDate">End Date (dd/mm/yyyy)</label>
+          <input type="text" id="endDate" placeholder="dd/mm/yyyy" maxlength="10" required />
+        </div>
+
+        <div class="field">
+          <label for="rate">Interest Rate</label>
+          <select id="rate">
+            <option value="0.02">2%</option>
+            <option value="0.05">5%</option>
+            <option value="0.015">1.5%</option>
+          </select>
+        </div>
+
+        <button id="calcBtn" type="submit">Calculate</button>
+      </form>
+    </section>
+
+    <!-- Results -->
+    <section id="result" class="card result" hidden></section>
   </div>
+
   <script src="script.js"></script>
 </body>
 </html>
