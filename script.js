@@ -1,12 +1,20 @@
 // --- Utilities ---
+
 function autoFormatDate(input) {
   let value = input.value.replace(/[^0-9]/g, "");
-  if (value.length >= 2 && value.length <= 4) {
-    value = value.slice(0, 2) + "/" + value.slice(2);
-  } else if (value.length > 4) {
-    value = value.slice(0, 2) + "/" + value.slice(2, 4) + "/" + value.slice(4, 8);
+  let formatted = "";
+
+  if (value.length > 0) {
+    formatted += value.substring(0, 2);
   }
-  input.value = value.slice(0, 10);
+  if (value.length >= 3) {
+    formatted += "/" + value.substring(2, 4);
+  }
+  if (value.length >= 5) {
+    formatted += "/" + value.substring(4, 8);
+  }
+
+  input.value = formatted;
 }
 
 function isValidDate(dateString) {
