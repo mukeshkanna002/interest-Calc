@@ -1,13 +1,31 @@
-// =====================
-// CONFIG — insert your API key here
-// =====================
-const METALS_API_KEY = "YOUR_API_KEY"; // <-- replace with your Metals-API key
 
-// Symbols for Chennai per Metals-API docs
-const CHENNAI_GOLD_SYMBOL = "USDXAU-CHEN";
-const CHENNAI_SILVER_SYMBOL = "USDXAG-CHEN";
+async function fetchMetalPrices() {
+  try {
+    // Using AllOrigins to bypass CORS
+    const url = 'https://api.allorigins.win/get?url=' + encodeURIComponent('https://www.goodreturns.in/gold-rates/chennai.html');
+    const response = await fetch(url);
+    const data = await response.json();
 
-// =====================
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(data.contents, "text/html");
+
+    // Selectors for 24k, 22k gold & silver
+    const gold24 = doc.querySelector("table strong:contains('24 Carat Gold (1 g)')")?.closest("tr")?.querySelector("td:last-child")?.innerText;
+    const gold22 = doc.querySelector("table strong:contains('22 Carat Gold (1 g)')")?.closest("tr")?.querySelector("td:last-child")?.innerText;
+    const silver = doc.querySelector("table strong:contains('Silver (1 g)')")?.closest("tr")?.querySelector("td:last-child")?.innerText;
+
+    document.getElementById("gold-price").innerText = `Gold 24K: ${gold24 || "N/A"} | Gold 22K: ${gold22 || "N/A"}`;
+    document.getElementById("silver-price").innerText = `Silver: ${silver || "N/A"}`;
+  } catch (error) {
+    document.getElementById("gold-price").innerText = "Error fetching prices";
+    document.getElementById("silver-price").innerText = "";
+    console.error("Error fetching metal prices:", error);
+  }
+}
+
+// Call on page load
+fetchMetalPrices();
+
 // Helpers
 // =====================
 function pad2(n){return String(n).padStart(2,'0');}
@@ -55,52 +73,6 @@ const LS_KEYS = {
   silver: "chen_silver_g",
   ts: "chen_last_update"
 };
-
-async function fetchChennaiRates(){
-  const goldEl = document.getElementById("goldPrice");
-  const silverEl = document.getElementById("silverPrice");
-  const metaEl = document.getElementById("ratesMeta");
-
-  // show cached first if available
-  const cachedGold = localStorage.getItem(LS_KEYS.gold);
-  const cachedSilver = localStorage.getItem(LS_KEYS.silver);
-  const cachedTs = localStorage.getItem(LS_KEYS.ts);
-  if(cachedGold && cachedSilver && cachedTs){
-    goldEl.textContent = `₹${cachedGold}/g`;
-    silverEl.textContent = `₹${cachedSilver}/g`;
-    metaEl.textContent = `Last updated: ${new Date(cachedTs).toLocaleString()}`;
-  }
-
-  if(!METALS_API_KEY || METALS_API_KEY === "YOUR_API_KEY"){
-    metaEl.textContent = "Add your Metals-API key in script.js to load live rates.";
-    return;
-  }
-
-  try{
-    const url = `https://metals-api.com/api/latest?access_key=${encodeURIComponent(METALS_API_KEY)}&base=INR&symbols=${CHENNAI_GOLD_SYMBOL},${CHENNAI_SILVER_SYMBOL}`;
-    const res = await fetch(url);
-    const data = await res.json();
-    if(!data || data.success === false){
-      throw new Error(data && data.error ? data.error.type || "API error" : "API error");
-    }
-    // per ounce -> per gram
-    const goldPerOz = data.rates[CHENNAI_GOLD_SYMBOL];
-    const silverPerOz = data.rates[CHENNAI_SILVER_SYMBOL];
-    const OZ_TO_G = 31.1035;
-    const goldG = goldPerOz ? (goldPerOz / OZ_TO_G).toFixed(2) : null;
-    const silverG = silverPerOz ? (silverPerOz / OZ_TO_G).toFixed(2) : null;
-
-    if(goldG){ goldEl.textContent = `₹${goldG}/g`; localStorage.setItem(LS_KEYS.gold, goldG); }
-    if(silverG){ silverEl.textContent = `₹${silverG}/g`; localStorage.setItem(LS_KEYS.silver, silverG); }
-
-    const ts = new Date().toISOString();
-    localStorage.setItem(LS_KEYS.ts, ts);
-    metaEl.textContent = `Last updated: ${new Date(ts).toLocaleString()}`;
-  }catch(err){
-    metaEl.textContent = "Could not fetch live rates right now.";
-    console.error(err);
-  }
-}
 
 // Refresh once per day at 10:00 (local time)
 function scheduleDaily10AM(){
