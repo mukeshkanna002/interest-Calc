@@ -91,7 +91,7 @@ function calculateInterest() {
   // interest and totals
   const monthlyRate = rate / 100;
   const interest = amount * monthlyRate ;
-  const total = amount + interest;
+  const total = amount + amount * monthlyRate * totalMonths;
   let newTotal = total - (amount * monthlyRate); // deduct one-month interest
   if (newTotal < amount) newTotal = amount;
 
