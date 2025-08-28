@@ -29,11 +29,7 @@
     <!-- Form -->
     <section class="card">
       <form id="interestForm">
-        <div class="field">
-          <label for="principal">Principal (₹)</label>
-          <input type="number" id="principal" inputmode="decimal" placeholder="Enter amount" required />
-        </div>
-
+     
         <div class="field">
           <label for="startDate">Start Date (dd/mm/yyyy)</label>
           <input type="text" id="startDate" placeholder="dd/mm/yyyy" maxlength="10" required />
@@ -42,6 +38,11 @@
         <div class="field">
           <label for="endDate">End Date (dd/mm/yyyy)</label>
           <input type="text" id="endDate" placeholder="dd/mm/yyyy" maxlength="10" required />
+        </div>
+        
+          <div class="field">
+          <label for="principal">Principal (₹)</label>
+          <input type="number" id="principal" inputmode="decimal" placeholder="Enter amount" required />
         </div>
 
         <div class="field">
@@ -53,9 +54,11 @@
           </select>
         </div>
 
-        <button id="calcBtn" type="submit">Calculate</button>
-      </form>
-    </section>
+        <div class="card">
+  <h2 class="text-xl font-bold mb-4">Today’s Chennai Gold & Silver Price</h2>
+  <div id="gold-price">Fetching Gold price...</div>
+  <div id="silver-price">Fetching Silver price...</div>
+</div>
 
     <!-- Results -->
     <section id="result" class="card result" hidden></section>
