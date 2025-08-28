@@ -1,30 +1,49 @@
 
-async function fetchMetalPrices() {
+async function fetchChennaiMetalPrices() {
   try {
-    // Using AllOrigins to bypass CORS
-    const url = 'https://api.allorigins.win/get?url=' + encodeURIComponent('https://www.goodreturns.in/gold-rates/chennai.html');
-    const response = await fetch(url);
-    const data = await response.json();
+    const goldUrl = 'https://api.allorigins.win/get?url=' + encodeURIComponent('https://www.goodreturns.in/gold-rates/chennai.html');
+    const silverUrl = 'https://api.allorigins.win/get?url=' + encodeURIComponent('https://www.goodreturns.in/silver-rates/chennai.html');
+
+    const [goldRes, silverRes] = await Promise.all([fetch(goldUrl), fetch(silverUrl)]);
+    const goldData = await goldRes.json();
+    const silverData = await silverRes.json();
 
     const parser = new DOMParser();
-    const doc = parser.parseFromString(data.contents, "text/html");
+    const goldDoc = parser.parseFromString(goldData.contents, "text/html");
+    const silverDoc = parser.parseFromString(silverData.contents, "text/html");
 
-    // Selectors for 24k, 22k gold & silver
-    const gold24 = doc.querySelector("table strong:contains('24 Carat Gold (1 g)')")?.closest("tr")?.querySelector("td:last-child")?.innerText;
-    const gold22 = doc.querySelector("table strong:contains('22 Carat Gold (1 g)')")?.closest("tr")?.querySelector("td:last-child")?.innerText;
-    const silver = doc.querySelector("table strong:contains('Silver (1 g)')")?.closest("tr")?.querySelector("td:last-child")?.innerText;
+    // Extract gold prices
+    const goldTable = goldDoc.querySelector("table");
+    const goldRows = goldTable?.querySelectorAll("tr");
+    let gold24 = "N/A", gold22 = "N/A";
 
-    document.getElementById("gold-price").innerText = `Gold 24K: ${gold24 || "N/A"} | Gold 22K: ${gold22 || "N/A"}`;
-    document.getElementById("silver-price").innerText = `Silver: ${silver || "N/A"}`;
+    goldRows?.forEach(row => {
+      const text = row.innerText;
+      if (text.includes("24K") || text.includes("24 Carat")) {
+        gold24 = row.querySelector("td:last-child")?.innerText || gold24;
+      }
+      if (text.includes("22K") || text.includes("22 Carat")) {
+        gold22 = row.querySelector("td:last-child")?.innerText || gold22;
+      }
+    });
+
+    // Extract silver price
+    const silverText = silverDoc.body.innerText;
+    const silverMatch = silverText.match(/Silver\s*\/g\s*₹?([\d,]+\.\d+)/i);
+    const silver = silverMatch ? `₹${silverMatch[1]}` : "N/A";
+
+    // Update DOM
+    document.getElementById("goldPrice").innerText = `24K: ${gold24} | 22K: ${gold22}`;
+    document.getElementById("silverPrice").innerText = silver;
+    document.getElementById("ratesMeta").innerText = `Updated: ${new Date().toLocaleString()}`;
   } catch (error) {
-    document.getElementById("gold-price").innerText = "Error fetching prices";
-    document.getElementById("silver-price").innerText = "";
-    console.error("Error fetching metal prices:", error);
+    console.error("Error fetching prices:", error);
+    document.getElementById("goldPrice").innerText = "Error fetching gold price";
+    document.getElementById("silverPrice").innerText = "Error fetching silver price";
+    document.getElementById("ratesMeta").innerText = "—";
   }
 }
-
-// Call on page load
-fetchMetalPrices();
+document.addEventListener("DOMContentLoaded", fetchChennaiMetalPrices);
 
 // Helpers
 // =====================
