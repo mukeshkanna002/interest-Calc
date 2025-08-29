@@ -2,32 +2,28 @@ from flask import Flask, jsonify
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 
 app = Flask(__name__)
-
-@app.route('/')
-def home():
-    return "✅ Gold Price Scraper is running. Visit /gold-price to get live prices."
 
 @app.route('/gold-price')
 def get_gold_price():
     try:
-        # Set up headless Chrome browser
-        chrome_options = Options()
-        chrome_options.add_argument("--headless")
-        chrome_options.add_argument("--no-sandbox")
-        chrome_options.add_argument("--disable-dev-shm-usage")
+        options = Options()
+        options.add_argument("--headless")
+        options.add_argument("--no-sandbox")
+        options.add_argument("--disable-dev-shm-usage")
 
-        driver = webdriver.Chrome(options=chrome_options)
+        driver = webdriver.Chrome(options=options)
         driver.get("https://www.goodreturns.in/gold-rates/chennai.html")
 
-        # Find the gold price table
-        tables = driver.find_elements(By.CLASS_NAME, "gold_silver_table")
-        if not tables:
-            driver.quit()
-            return jsonify({"error": "Gold price table not found"})
+        # Wait for the table to load
+        WebDriverWait(driver, 10).until(
+            EC.presence_of_element_located((By.CLASS_NAME, "gold_silver_table"))
+        )
 
-        table = tables[0]
+        table = driver.find_element(By.CLASS_NAME, "gold_silver_table")
         rows = table.find_elements(By.TAG_NAME, "tr")
 
         gold_prices = {}
