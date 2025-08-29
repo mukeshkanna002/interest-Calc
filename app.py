@@ -19,6 +19,3 @@ def get_gold_price():
             price = cols[1].get_text(strip=True)
             gold_prices[purity] = price
     return jsonify(gold_prices)
-
-if __name__ == '__main__':
-    app.run()
