@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Live Gold Price in Chennai</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #fff8dc;
+      color: #333;
+      padding: 20px;
+    }
+    h1 {
+      color: #b8860b;
+    }
+    #gold-prices {
+      margin-top: 20px;
+      font-size: 18px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Live Gold Price in Chennai</h1>
+  <div id="gold-prices">Loading gold prices...</div>
+
+  <script>
+    async function loadGoldPrice() {
+      try {
+        const response = await fetch('https://interest-calc.onrender.com/gold-price');
+        const data = await response.json();
+        const container = document.getElementById('gold-prices');
+        container.innerHTML = Object.entries(data).map(
+          ([purity, price]) => `<p><strong>${purity}</strong>: ${price}</p>`
+        ).join('');
+      } catch (error) {
+        document.getElementById('gold-prices').innerText = 'Failed to load gold prices.';
+        console.error('Error fetching gold prices:', error);
+      }
+    }
+
+    loadGoldPrice();
+  </script>
+</body>
+</html>
