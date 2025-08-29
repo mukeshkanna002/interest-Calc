@@ -1,41 +1,34 @@
 from flask import Flask, jsonify
-from selenium import webdriver
-from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
+import requests
+from bs4 import BeautifulSoup
+import re
 
 app = Flask(__name__)
+
+@app.route('/')
+def home():
+    return "✅ Gold Price API is running. Use /gold-price to get current prices."
 
 @app.route('/gold-price')
 def get_gold_price():
     try:
-        options = Options()
-        options.add_argument("--headless")
-        options.add_argument("--no-sandbox")
-        options.add_argument("--disable-dev-shm-usage")
-
-        driver = webdriver.Chrome(options=options)
-        driver.get("https://www.goodreturns.in/gold-rates/chennai.html")
-
-        # Wait for the table to load
-        WebDriverWait(driver, 10).until(
-            EC.presence_of_element_located((By.CLASS_NAME, "gold_silver_table"))
-        )
-
-        table = driver.find_element(By.CLASS_NAME, "gold_silver_table")
-        rows = table.find_elements(By.TAG_NAME, "tr")
-
-        gold_prices = {}
-        for row in rows[1:]:
-            cols = row.find_elements(By.TAG_NAME, "td")
-            if len(cols) >= 2:
-                purity = cols[0].text.strip()
-                price = cols[1].text.strip()
-                gold_prices[purity] = price
-
-        driver.quit()
-        return jsonify(gold_prices)
-
+        url = "https://www.goodreturns.in/gold-rates/chennai.html"
+        response = requests.get(url, timeout=10)
+        soup = BeautifulSoup(response.content, 'html.parser')
+        text = soup.get_text()
+        pattern = r"Chennai\s*₹([\d,]+)\s*₹([\d,]+)\s*₹([\d,]+)"
+        match = re.search(pattern, text)
+        if match:
+            gold_prices = {
+                "24K": f"₹{match.group(1)}",
+                "22K": f"₹{match.group(2)}",
+                "18K": f"₹{match.group(3)}"
+            }
+            return jsonify(gold_prices)
+        else:
+            return jsonify({"error": "Gold prices not found in page text."})
     except Exception as e:
         return jsonify({"error": str(e)})
+
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=5000)
