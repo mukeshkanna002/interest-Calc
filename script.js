@@ -144,4 +144,4 @@ document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("start").addEventListener("input", (e) => autoFormatDate(e.target));
   end.addEventListener("input", (e) => autoFormatDate(e.target));
   document.getElementById("calcBtn").addEventListener("click", calculateInterest);
-});s
+});
