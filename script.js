@@ -7,17 +7,17 @@ async function fetchSheetData() {
   const csvText = await response.text();
 
   const rows = csvText.trim().split("\n").map(row => row.split(","));
-  const headers = rows[0];
+  const headers = rows[0].map(h => h.trim());
   sheetData = rows.slice(1).map(row => {
     const obj = {};
-    row.forEach((cell, i) => obj[headers[i]] = cell);
+    row.forEach((cell, i) => obj[headers[i]] = cell.trim());
     return obj;
   });
 }
 
-function getStartDateFromSno(sno) {
-  const row = sheetData.find(r => r["S.no"] === sno);
-  return row ? row["Start Date"] : null;
+function getGivenDateFromBillNo(billNo) {
+  const row = sheetData.find(r => r["Bill no"] === billNo);
+  return row ? row["Given date"] : null;
 }
 
 function autoFormatDate(input) {
@@ -65,13 +65,13 @@ function parseDDMMYYYY(s) {
 async function calculateInterest() {
   await fetchSheetData();
 
-  const sno = document.getElementById("sno").value.trim();
+  const billNo = document.getElementById("sno").value.trim();
   let startStr = document.getElementById("start").value.trim();
 
-  if (sno) {
-    const sheetStartDate = getStartDateFromSno(sno);
+  if (billNo) {
+    const sheetStartDate = getGivenDateFromBillNo(billNo);
     if (!sheetStartDate || !isValidDate(sheetStartDate)) {
-      alert("Invalid or missing Start Date for given S.no");
+      alert("Invalid or missing Given date for the entered Bill no");
       return;
     }
     startStr = sheetStartDate;
