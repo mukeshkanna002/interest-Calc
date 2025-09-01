@@ -20,6 +20,11 @@ function getGivenDateFromBillNo(billNo) {
   return row ? row["Given date"] : null;
 }
 
+function getAmountFromBillNo(billNo) {
+  const row = sheetData.find(r => r["Bill no"] === billNo);
+  return row ? parseFloat(row["Amount given"]) : null;
+}
+
 function autoFormatDate(input) {
   const originalValue = input.value;
   const originalCursor = input.selectionStart;
@@ -67,19 +72,26 @@ async function calculateInterest() {
 
   const billNo = document.getElementById("sno").value.trim();
   let startStr = document.getElementById("start").value.trim();
+  let amount = parseFloat(document.getElementById("amount").value);
 
   if (billNo) {
     const sheetStartDate = getGivenDateFromBillNo(billNo);
+    const sheetAmount = getAmountFromBillNo(billNo);
     if (!sheetStartDate || !isValidDate(sheetStartDate)) {
       alert("Invalid or missing Given date for the entered Bill no");
       return;
     }
+    if (isNaN(sheetAmount) || sheetAmount <= 0) {
+      alert("Invalid or missing Amount given for the entered Bill no");
+      return;
+    }
     startStr = sheetStartDate;
+    amount = sheetAmount;
     document.getElementById("start").value = startStr;
+    document.getElementById("amount").value = amount;
   }
 
   let endStr = document.getElementById("end").value.trim();
-  const amount = parseFloat(document.getElementById("amount").value);
   const rate = parseFloat(document.getElementById("rate").value);
 
   if (!isValidDate(startStr)) {
